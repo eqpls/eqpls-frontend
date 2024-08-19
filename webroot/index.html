@@ -43,20 +43,16 @@
 		<br/>
 		<p id="eqpls-access-token"></p>
 		<br/>
-		<p id="eqpls-refresh-token"></p>
+
+		<input type="file" id="eqpls-data-file" multiple/>
+		<input type="button" id="eqpls-data-upload" value="Upload"/>
 		<br/>
-		<p id="eqpls-id-token"></p>
+
+		<img id="eqpls-data-blob"></img>
 		<br/>
-		<p id="eqpls-bearer-token"></p>
-		<br/>
-		<p id="eqpls-data-token"></p>
-		<br/>
-		<p id="eqpls-console-token"></p>
-		<br/>
-		<p id="eqpls-data"></p>
-		<br/>
-		<input type="button" onclick="Console.openNewWindow('root', 'vmkloud.com', '8922');" value="New Window Console"/>
-		<input type="button" onclick="Console.openNewTab('root', 'vmkloud.com', '8922');" value="New Tab Console"/>
+
+		<input type="button" onclick="Console.openNewWindow('root', 'eqpls.com', '8922');" value="New Window Console"/>
+		<input type="button" onclick="Console.openNewTab('root', 'eqpls.com', '8922');" value="New Tab Console"/>
 	</div>
 
 	<script src="/static/vendor/keycloak/jwt-decode.js"></script>

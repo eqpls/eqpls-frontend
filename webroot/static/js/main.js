@@ -1,66 +1,65 @@
 // javascript here
 
-var socket = null;
-var carts = [];
-var rounds = [];
+window.common.auth.login(() => {
+	document.getElementById("eqpls-access-token").innerText = window.common.auth.accessToken;
 
-function drawCartData() {
-	let html = '';
-	carts.forEach((cart)=> {
-		html += `
-<div id="${cart.id}">
-	<h3>${cart.name} <small>${cart.id}</small></h3>
-	<span>${cart.manager.name}</span> <span>[${cart.location.x},${cart.location.y}]</span>
-</div>
-`;
-	});
-	document.getElementById("epqls-cart-data").innerHTML = html;
-};
-
-function drawRoundData() {
-	let html = '';
-	rounds.forEach((round)=> {
-		html += `
-<div id="${round.id}">
-	<h3>${round.name}</h3>
-</div>
-`;
-	});
-	document.getElementById("eqpls-round-data").innerHTML = html;
-};
-
-
-
-
-Auth.login(()=> {
-	document.getElementById("eqpls-access-token").innerText = Auth.accessToken;
-
-	Rest.get("/uerp/v1/demo/device/cart?$archive&$orderby=name&$order=asc", (data)=> {
-		carts = data;
-		drawCartData();
-	});
-
-	Rest.get("/uerp/v1/demo/operation/round?$archive&$orderby=name&$order=asc", (data)=> {
-		rounds = data;
-		drawRoundData();
-	});
-
-	socket = WSock.connect(
-		'/router/websocket/admin', // admin target url
-		(data)=> { // recv handler
+	window.common.wsock.connect(
+		`/router/websocket?org=${window.common.auth.realm}&token=${window.common.auth.accessToken}`,
+		(data) => {
 			console.log(data);
-			for (let i=0; i<carts.length; i++) {
-				let cart = carts[i];
-				if (cart.id == data.id) {
-					cart.location.x = data.location.x;
-					cart.location.y = data.location.y;
-					break;
-				}
-			}
-			drawCartData();
 		}
 	);
 
-}, ()=> {
+	window.common.data.getObject(
+		"admin",
+		"/equal_flowww.png",
+		(object) => {
+			object.getBlob((blob) => {
+				document.getElementById("eqpls-data-blob").src = URL.createObjectURL(blob);
+			});
+		}, (error) => {
+			console.error(error);
+		}
+	);
+
+	document.getElementById("eqpls-data-upload").onclick = (event) => {
+		event.stopPropagation();
+
+		console.log("upload click");
+		let files = document.getElementById("eqpls-data-file").files;
+		console.log(files);
+
+		window.common.data.upload(
+			"admin",
+			"/",
+			files,
+			(bucket, path, files) => {
+				console.log(bucket);
+				console.log(path);
+				console.log(files);
+				//console.log(results);
+			}
+		);
+
+		/*
+		if (files.length > 0) {
+			let basePath = "/test1";
+			basePath = basePath.split("/").filter((item) => { return item; }).join("/");
+			for (let i=0; i<files.length; i++) {
+				let file = files[i];
+				let path = `${basePath}/${file.name}`;
+				let form = new FormData();
+				form.append(file.size, file);
+				fetch(`/minio/ui/api/v1/buckets/admin/objects/upload?prefix=${btoa(path)}`, {
+					method: "POST",
+					body: form
+				});
+			}
+		}
+		*/
+
+	};
+
+}, () => {
 	console.error("login error");
 });
