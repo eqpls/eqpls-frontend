@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="description" content="">
+<meta name="author" content="example.com">
+
+<title>EQPLS</title>
+
+<link rel="apple-touch-icon" sizes="57x57" href="/static/img/favicons/apple-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="/static/img/favicons/apple-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="/static/img/favicons/apple-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="/static/img/favicons/apple-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="/static/img/favicons/apple-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="/static/img/favicons/apple-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/static/img/favicons/apple-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/static/img/favicons/apple-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/static/img/favicons/apple-icon-180x180.png">
+<link rel="icon" type="image/png" sizes="144x144" href="/static/img/favicons/android-icon-144x144.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/static/img/favicons/android-icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/static/img/favicons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/static/img/favicons/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/static/img/favicons/favicon-16x16.png">
+<link rel="manifest" href="/static/img/favicons/manifest.json">
+
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="/static/img/favicons/ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff">
+
+<link href="/static/css/eqpls.css" rel="stylesheet" type="text/css">
+
+<style>
+* {
+	margin: 0;
+	border: 0;
+	padding: 0;
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+::-webkit-scrollbar {
+	display: none;
+}
+</style>
+
+</head>
+
+<body id="main">
+
+    <div id="eqpls-console"></div>
+
+	<script src="/static/vendor/keycloak/jwt-decode.js"></script>
+	<script src="/static/vendor/keycloak/sha256.min.js"></script>
+	<script src="/static/vendor/keycloak/keycloak.min.js"></script>
+	<script src="/static/vendor/guacamole/guacamole.min.js"></script>
+
+	<script src="/static/js/util.js"></script>
+	<script src="/static/js/auth.js"></script>
+	<script src="/static/js/console.js"></script>
+
+	<script>
+
+Auth.checkUserInfo(()=> {
+	if (!window.location.search) { Console.closeByException("연결 정보가 없습니다"); }
+	let params = Util.parseQueryToMap(window.location.search);
+	let username = params.username ? params.username : Console.closeByException("사용자 계정 정보가 없습니다");
+	let hostname = params.hostname ? params.hostname : Console.closeByException("호스트 연결 정보가 없습니다");
+	let hostport = params.hostport ? params.hostport : "22";
+	Console.openOnDom(document.getElementById("eqpls-console"), username, hostname, hostport);
+}, ()=> {
+	Console.closeByException("인증 정보가 없습니다");
+});
+
+	</script>
+
+</body>
+</html>
