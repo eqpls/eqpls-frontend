@@ -7,7 +7,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="description" content="">
-<meta name="author" content="example.com">
+<meta name="author" content="eqpls.com">
 
 <title>EQPLS</title>
 
@@ -31,8 +31,6 @@
 <meta name="msapplication-TileImage" content="/static/img/favicons/ms-icon-144x144.png">
 <meta name="theme-color" content="#ffffff">
 
-<link href="/static/css/eqpls.css" rel="stylesheet" type="text/css">
-
 <style>
 * {
 	margin: 0;
@@ -41,6 +39,7 @@
 	-ms-overflow-style: none;
 	scrollbar-width: none;
 }
+
 ::-webkit-scrollbar {
 	display: none;
 }
@@ -48,30 +47,30 @@
 
 </head>
 
-<body id="main">
+<body>
 
-    <div id="eqpls-console"></div>
+	<div id="terminial-canvas"></div>
 
 	<script src="/static/vendor/keycloak/jwt-decode.js"></script>
 	<script src="/static/vendor/keycloak/sha256.min.js"></script>
 	<script src="/static/vendor/keycloak/keycloak.min.js"></script>
 	<script src="/static/vendor/guacamole/guacamole.min.js"></script>
 
-	<script src="/static/js/util.js"></script>
-	<script src="/static/js/auth.js"></script>
-	<script src="/static/js/console.js"></script>
+	<script src="/static/js/common.js"></script>
 
 	<script>
 
-Auth.checkUserInfo(()=> {
-	if (!window.location.search) { Console.closeByException("연결 정보가 없습니다"); }
-	let params = Util.parseQueryToMap(window.location.search);
-	let username = params.username ? params.username : Console.closeByException("사용자 계정 정보가 없습니다");
-	let hostname = params.hostname ? params.hostname : Console.closeByException("호스트 연결 정보가 없습니다");
-	let hostport = params.hostport ? params.hostport : "22";
-	Console.openOnDom(document.getElementById("eqpls-console"), username, hostname, hostport);
-}, ()=> {
-	Console.closeByException("인증 정보가 없습니다");
+window.common.init(()=> {
+	window.common.auth.checkUserInfo(()=> {
+		if (!window.location.search) { window.common.term.closeByException("연결 정보가 없습니다"); }
+		let params = window.common.util.parseQueryToMap(window.location.search);
+		let username = params.username ? params.username : window.common.term.closeByException("사용자 계정 정보가 없습니다");
+		let hostname = params.hostname ? params.hostname : window.common.term.closeByException("호스트 연결 정보가 없습니다");
+		let hostport = params.hostport ? params.hostport : "22";
+		window.common.term.openOnDom(document.getElementById("terminial-canvas"), username, hostname, hostport);
+	}, ()=> {
+		window.common.term.closeByException("인증 정보가 없습니다");
+	});
 });
 
 	</script>
