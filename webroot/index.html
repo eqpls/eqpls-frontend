@@ -37,22 +37,14 @@
 
 <body>
 
-	<div id="main">
-		<h1>Hello World !!!</h1>
-		<input type="button" onclick="window.common.auth.logout();" value="LogOut"/>
-		<br/>
-		<p id="eqpls-access-token"></p>
-		<br/>
-
-		<input type="file" id="eqpls-data-file" multiple/>
-		<input type="button" id="eqpls-data-upload" value="Upload"/>
-		<br/>
-
-		<img id="eqpls-data-blob"></img>
-		<br/>
-
-		<input type="button" onclick="window.common.term.openNewWindow('root', 'vmkloud.com', '8922');" value="New Window Console"/>
-		<input type="button" onclick="window.common.term.openNewTab('root', 'vmkloud.com', '8922');" value="New Tab Console"/>
+	<div>
+		<div>
+			<h1>Hello World !!!</h1>
+			<input type="button" onclick="window.common.auth.logout();" value="LogOut" />
+		</div>
+		<div>
+			<p id="eqpls-access-token"></p>
+		</div>
 	</div>
 
 	<script src="/static/vendor/keycloak/jwt-decode.js"></script>
