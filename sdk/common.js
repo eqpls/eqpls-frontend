@@ -11,8 +11,8 @@ window.common.init = (mainHandler) => {
 	window.common.term = {};
 
 	// tenant configurations //////////////////////////
-	window.common.env.tenant = "trinity";
-	window.common.env.endpoint = "trinity.eqpls.net";
+	window.common.env.tenant = "eqpls";
+	window.common.env.endpoint = "eqpls.com";
 	window.common.env.isDataService = true;
 	window.common.env.isTermService = true;
 
