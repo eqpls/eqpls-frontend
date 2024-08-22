@@ -33,147 +33,17 @@ window.common.init = (mainHandler) => {
 	window.common.auth.url = `${window.common.env.url}/auth`;
 
 	window.common.auth.setOrg = (org) => {
-		if (org) {
-			window.common.auth.org = org;
-			localStorage.setItem("authOrg", org);
-		} else {
-			window.common.auth.org = window.common.env.tenant;
-			localStorage.setItem("authOrg", window.common.env.tenant);
-		}
+		if (org) { window.common.auth.org = org; }
+		else { window.common.auth.org = window.common.env.tenant; }
 		return window.common.auth.org;
 	};
 
 	window.common.auth.getOrg = () => {
 		if (window.common.auth.org) { return window.common.auth.org; }
-		let org = localStorage.getItem("authOrg");
-		if (org) {
-			window.common.auth.org = org;
-			return window.common.auth.org;
-		} else {
-			return window.common.auth.setOrg();
-		}
+		return window.common.auth.setOrg();
 	};
 
-	window.common.auth.__load_all_auth_data__ = () => {
-		window.common.auth.accessToken = localStorage.getItem("authAccessToken");
-		window.common.auth.refreshToken = localStorage.getItem("authRefreshToken");
-		window.common.auth.idToken = localStorage.getItem("authIdToken");
-		window.common.auth.termToken = localStorage.getItem("authTermToken");
-		window.common.auth.dataToken = localStorage.getItem("authDataToken");
-	};
-
-	window.common.auth.__remove_all_auth_data__ = () => {
-		localStorage.removeItem("authUsername");
-		window.common.auth.username = null;
-		window.common.auth.userInfo = null;
-		window.common.auth.apiHeaders = null;
-		localStorage.removeItem("authAccessToken");
-		window.common.auth.accessToken = null;
-		localStorage.removeItem("authRefreshToken");
-		window.common.auth.refreshToken = null;
-		localStorage.removeItem("authIdToken");
-		window.common.auth.idToken = null;
-		localStorage.removeItem("authTermToken");
-		window.common.auth.termToken = null;
-		localStorage.removeItem("authDataToken");
-		window.common.auth.dataToken = null;
-	};
-
-	window.common.auth.checkUserInfo = (resultHandler, errorHandler) => {
-		window.common.auth.username = localStorage.getItem("authUsername");
-		if (window.common.auth.username) {
-			window.common.auth.userInfo = JSON.parse(localStorage.getItem("authUserInfo"));
-			window.common.auth.__load_all_auth_data__();
-			window.common.auth.apiHeaders = {
-				"Content-Type": "application/json; charset=utf-8",
-				"Accept": "application/json; charset=utf-8",
-				"Authorization": `Bearer ${window.common.auth.accessToken}`
-			};
-			if (resultHandler) { resultHandler(); }
-		} else {
-			window.common.auth.accessToken = localStorage.getItem("authAccessToken");
-			let bearerToken = `Bearer ${window.common.auth.accessToken}`;
-			if (window.common.auth.accessToken) {
-				fetch(`/auth/realms/${window.common.auth.getOrg()}/protocol/openid-connect/userinfo`, {
-					headers: { Authorization: bearerToken }
-				}).then((res) => {
-					if (res.ok) { return res.json(); }
-					window.common.auth.__remove_all_auth_data__();
-					if (errorHandler) { errorHandler(); }
-					throw res
-				}).then((userInfo) => {
-					window.common.auth.__load_all_auth_data__();
-					window.common.auth.username = userInfo.preferred_username;
-					window.common.auth.userInfo = userInfo;
-					window.common.auth.apiHeaders = {
-						"Content-Type": "application/json; charset=utf-8",
-						"Accept": "application/json; charset=utf-8",
-						"Authorization": bearerToken
-					};
-					localStorage.setItem("authUsername", window.common.auth.username);
-					localStorage.setItem("authUserInfo", JSON.stringify(window.common.auth.userInfo));
-					if (resultHandler) { resultHandler(); }
-				})
-			} else {
-				window.common.auth.__remove_all_auth_data__();
-				if (errorHandler) { errorHandler(); }
-			}
-		}
-	};
-
-	window.common.auth.loginDataService = (resultHandler, errorHandler) => {
-		if (window.common.env.isDataService) {
-			window.common.auth.dataToken = localStorage.getItem("authDataToken");
-			if (window.common.auth.dataToken) {
-				if (resultHandler) { resultHandler(); }
-			} else {
-				fetch("/minio/ui/api/v1/login").then((res) => {
-					if (res.ok) { return res.json(); }
-					localStorage.removeItem("authDataToken");
-					if (errorHandler) { errorHandler(); }
-					throw res;
-				}).then((data) => {
-					fetch(data.redirectRules[0].redirect).then((res) => {
-						if (res.ok) { return res.json(); }
-						localStorage.removeItem("authDataToken");
-						if (errorHandler) { errorHandler(); }
-						throw res;
-					}).then((data) => {
-						data.state = decodeURIComponent(data.state);
-						fetch("/minio/ui/api/v1/login/oauth2/auth", {
-							method: "POST",
-							headers: { "Content-Type": "application/json" },
-							body: JSON.stringify(data)
-						}).then((res) => {
-							if (res.ok) {
-								fetch("/minio/ui/cookie_to_data").then((res) => {
-									if (res.ok) { return res.json(); }
-									localStorage.removeItem("authDataToken");
-									if (errorHandler) { errorHandler(); }
-									throw res;
-								}).then((data) => {
-									localStorage.setItem("authDataToken", data.token);
-									if (resultHandler) { resultHandler(); }
-								});
-							} else {
-								localStorage.removeItem("authDataToken");
-								if (errorHandler) { errorHandler(); }
-								throw res;
-							}
-						});
-					});
-				});
-			}
-		} else {
-			if (resultHandler) { resultHandler(); }
-		}
-	};
-
-	window.common.auth.refreshDataService = (resultHandler, errorHandler) => {
-		localStorage.removeItem("authDataToken");
-		window.common.auth.loginDataService(resultHandler, errorHandler);
-	};
-
+	/*
 	window.common.auth.loginTermService = (resultHandler, errorHandler) => {
 		if (window.common.env.isTermService) {
 			window.common.auth.termToken = localStorage.getItem("authTermToken");
@@ -211,52 +81,105 @@ window.common.init = (mainHandler) => {
 			if (resultHandler) { resultHandler(); }
 		}
 	};
+	*/
 
-	window.common.auth.refreshTermService = (resultHandler, errorHandler) => {
-		localStorage.removeItem("authTermToken");
-		window.common.auth.loginTermService(resultHandler, errorHandler);
+	window.common.auth.loginDataService = (resultHandler, errorHandler) => {
+		if (window.common.env.isDataService) {
+			if (window.common.auth.dataToken) {
+				if (resultHandler) { resultHandler(); }
+			} else {
+				fetch("/minio/ui/api/v1/login").then((res) => {
+					if (res.ok) { return res.json(); }
+					if (errorHandler) { errorHandler(); }
+					throw res;
+				}).then((data) => {
+					fetch(data.redirectRules[0].redirect).then((res) => {
+						if (res.ok) { return res.json(); }
+						if (errorHandler) { errorHandler(); }
+						throw res;
+					}).then((data) => {
+						data.state = decodeURIComponent(data.state);
+						fetch("/minio/ui/api/v1/login/oauth2/auth", {
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify(data)
+						}).then((res) => {
+							if (res.ok) {
+								fetch("/minio/ui/cookie_to_data").then((res) => {
+									if (res.ok) { return res.json(); }
+									if (errorHandler) { errorHandler(); }
+									throw res;
+								}).then((data) => {
+									window.common.auth.dataToken = data.token;
+									if (resultHandler) { resultHandler(); }
+								});
+							} else {
+								if (errorHandler) { errorHandler(); }
+								throw res;
+							}
+						});
+					});
+				});
+			}
+		} else if (resultHandler) { resultHandler(); }
 	};
 
-	window.common.auth.login = (resultHandler, errorHandler) => {
-		window.common.auth.checkUserInfo(() => {
-			window.common.auth.loginDataService(() => {
-				window.common.auth.loginTermService(() => {
-					if (resultHandler) { resultHandler(); }
-				}, errorHandler);
-			}, errorHandler);
-		}, () => {
-			window.common.auth.keycloak = new Keycloak({
-				url: window.common.auth.url,
-				realm: window.common.auth.getOrg(),
-				clientId: window.common.env.tenant
-			});
-			window.common.auth.keycloak.onAuthSuccess = () => {
-				localStorage.setItem("authAccessToken", window.common.auth.keycloak.token);
-				localStorage.setItem("authRefreshToken", window.common.auth.keycloak.refreshToken);
-				localStorage.setItem("authIdToken", window.common.auth.keycloak.idToken);
-				window.common.auth.checkUserInfo(() => {
-					window.common.auth.loginDataService(() => {
-						window.common.auth.loginTermService(() => {
-							if (resultHandler) { resultHandler(); }
-						}, errorHandler);
-					}, errorHandler);
-				}, errorHandler);
-			};
-			window.common.auth.keycloak.onAuthError = () => {
-				window.common.auth.__remove_all_auth_data__();
-				if (errorHandler) { errorHandler(); }
-			};
-			window.common.auth.keycloak.init({
-				onLoad: 'login-required'
-			});
+	window.common.auth.checkUserInfo = (resultHandler, errorHandler) => {
+		fetch(`/auth/realms/${window.common.auth.getOrg()}/protocol/openid-connect/userinfo`, {
+			headers: window.common.auth.apiHeaders
+		}).then((res) => {
+			if (res.ok) { return res.json(); }
+			if (errorHandler) { errorHandler(); }
+			throw res
+		}).then((userInfo) => {
+			window.common.auth.username = userInfo.preferred_username;
+			window.common.auth.userInfo = userInfo;
+			if (resultHandler) { resultHandler(); }
 		});
 	};
 
+	window.common.auth.postLogin = (resultHandler, errorHandler) => {
+		window.common.auth.accessToken = window.common.auth.keycloak.token;
+		window.common.auth.refreshToken = window.common.auth.keycloak.refreshToken;
+		window.common.auth.idToken = window.common.auth.keycloak.idToken;
+		window.common.auth.apiHeaders = {
+			"Content-Type": "application/json; charset=utf-8",
+			"Accept": "application/json; charset=utf-8",
+			"Authorization": `Bearer ${window.common.auth.accessToken}`
+		};
+		window.common.auth.checkUserInfo(() => {
+			window.common.auth.loginDataService(resultHandler, errorHandler);
+		}, errorHandler);
+	};
+
+	window.common.auth.tokenDaemon = () => {
+		window.common.auth.keycloak.updateToken(5).then((refreshed) => {
+			if (refreshed) {
+				window.common.auth.dataToken = null;
+				window.common.auth.postLogin();
+			}
+			setTimeout(window.common.auth.tokenDaemon, 60000);
+		});
+	};
+
+	window.common.auth.login = (resultHandler, errorHandler) => {
+		let keycloak = new Keycloak({
+			url: window.common.auth.url,
+			realm: window.common.auth.getOrg(),
+			clientId: window.common.env.tenant
+		});
+		keycloak.onAuthSuccess = () => {
+			window.common.auth.keycloak = keycloak;
+			window.common.auth.tokenDaemon();
+			window.common.auth.postLogin(resultHandler, errorHandler);
+		};
+		keycloak.onAuthError = () => { if (errorHandler) { errorHandler(); } };
+		keycloak.init({ onLoad: 'login-required' });
+	};
+
 	window.common.auth.logout = () => {
-		let idToken = window.common.auth.idToken;
-		window.common.auth.__remove_all_auth_data__();
-		if (idToken) {
-			window.location.replace(`/auth/realms/${window.common.auth.getOrg()}/protocol/openid-connect/logout?id_token_hint=${idToken}&post_logout_redirect_uri=/`);
+		if (window.common.auth.idToken) {
+			window.location.replace(`/auth/realms/${window.common.auth.getOrg()}/protocol/openid-connect/logout?id_token_hint=${window.common.auth.idToken}&post_logout_redirect_uri=/`);
 		} else {
 			window.location.replace("/");
 		}
@@ -343,15 +266,82 @@ window.common.init = (mainHandler) => {
 	};
 
 	// window.common.data /////////////////////////////
+	window.common.data._upload = (bucket, path, files, resultHandler, errorHandler) => {
+		if (files.length > 0) {
+			let basePath = path.split("/").filter((item) => { return item; }).join("/");
+			let coros = [];
+			let results = [];
+			let isOk = true;
+
+			for (let i = 0; i < files.length; i++) {
+				let file = files[i];
+				let prefix = basePath ? `${basePath}/${file.name}` : file.name;
+				let form = new FormData();
+				form.append(file.size, file);
+				coros.push(fetch(`/minio/ui/api/v1/buckets/${bucket}/objects/upload?prefix=${btoa(prefix)}`, {
+					method: "POST",
+					body: form
+				}));
+				results.push(null);
+			}
+			for (let i = 0, j = 1; i < files.length; i++, j++) {
+				let coro = coros[i];
+				coro.then((res) => {
+					results[i] = res;
+					if (res.ok) {
+						if (j == files.length && isOk && resultHandler) {
+							resultHandler(bucket, path, files, results);
+						}
+					} else if (errorHandler) {
+						isOk = false
+						errorHandler(bucket, path, files, results);
+					}
+				});
+			}
+		} else if (errorHandler) {
+			errorHandler(bucket, path, files);
+		}
+	};
+
+	window.common.data._download = (url, resultHandler, errorHandler) => {
+		fetch(`/minio/ui/api/v1${url}`).then((res) => {
+			if (res.ok) { return res.blob(); }
+			else {
+				if (res.status == 401) { window.common.auth.refreshDataService(() => { window.common.data._download(url, resultHandler, errorHandler); }); }
+				else { if (errorHandler) { errorHandler(res); }; throw res; }
+			}
+		}).then((data) => { if (resultHandler) { resultHandler(data); } });
+	};
+
+	window.common.data._get = (url, resultHandler, errorHandler) => {
+		fetch(`/minio/ui/api/v1${url}`).then((res) => {
+			if (res.ok) { return res.json(); }
+			else {
+				if (res.status == 401) { window.common.auth.refreshDataService(() => { window.common.data._get(url, resultHandler, errorHandler); }); }
+				else { if (errorHandler) { errorHandler(res); }; throw res; }
+			}
+		}).then((data) => { if (resultHandler) { resultHandler(data); } });
+	};
+
+	window.common.data._post = (url, data, resultHandler, errorHandler) => {
+		fetch(`/minio/ui/api/v1${url}`).then((res) => {
+			if (res.ok) { return res.json(); }
+			else {
+				if (res.status == 401) { window.common.auth.refreshDataService(() => { window.common.data._get(url, resultHandler, errorHandler); }); }
+				else { if (errorHandler) { errorHandler(res); }; throw res; }
+			}
+		}).then((data) => { if (resultHandler) { resultHandler(data); } });
+	};
+
+
+
+
 	window.common.data._set_object_functions_ = (bucket, object) => {
 		if (object.etag !== undefined) {
-			object.isData = () => { return true; };
-			object.isDir = () => { return false; };
-			object.getUrl = () => {
-				return `/minio/ui/api/v1/buckets/${bucket}/objects/download?prefix=${btoa(object.name)}`
-			};
-			object.getBlob = (resultHandler, errorHandler) => {
-				fetch(object.getUrl()).then((res) => {
+			object.url = `/minio/ui/api/v1/buckets/${bucket}/objects/download?prefix=${btoa(object.name)}`;
+			object.dir = false;
+			object.download = (resultHandler, errorHandler) => {
+				fetch(object.url).then((res) => {
 					if (res.ok) { return res.blob(); }
 					if (errorHandler) { errorHandler(res); }
 					throw res;
@@ -359,7 +349,16 @@ window.common.init = (mainHandler) => {
 					if (resultHandler) { resultHandler(data); }
 				});
 			};
+			object.delete = (resultHandler, errorHandler) => {
+				fetch(`/minio/ui/api/v1/buckets/${bucket}/objects?prefix=${btoa(object.name)}`, {
+					method: "DELETE"
+				}).then((res) => {
+					if (res.ok) { if (resultHandler) { resultHandler(res); } }
+					else { if (errorHandler) { errorHandler(res); }; throw res; }
+				});
+			};
 		} else {
+			object.url = `/minio/ui/api/v1/buckets/${bucket}/objects/download?prefix=${btoa(object.name)}`;
 			object.isData = () => { return false; };
 			object.isDir = () => { return true; };
 			object.getObjectList = (resultHandler, errorHandler) => {
@@ -373,6 +372,14 @@ window.common.init = (mainHandler) => {
 					if (resultHandler) { resultHandler(objects); }
 				});
 			};
+			object.delete = (resultHandler, errorHandler) => {
+				fetch(`/minio/ui/api/v1/buckets/${bucket}/objects?prefix=${btoa(object.name)}&recursive=true`, {
+					method: "DELETE"
+				}).then((res) => {
+					if (res.ok) { if (resultHandler) { resultHandler(res); } }
+					else { if (errorHandler) { errorHandler(res); }; throw res; }
+				});
+			};
 		}
 	};
 
@@ -383,17 +390,17 @@ window.common.init = (mainHandler) => {
 			throw res;
 		}).then((data) => {
 			let buckets = data.buckets;
-			buckets.forEach((object) => {
-				object.isData = () => { return false; };
-				object.isDir = () => { return true; };
-				object.getObjectList = (resultHandler, errorHandler) => {
-					fetch(`/minio/ui/api/v1/buckets/${object.name}/objects`).then((res) => {
+			buckets.forEach((bucket) => {
+				bucket.isData = () => { return false; };
+				bucket.isDir = () => { return true; };
+				bucket.getObjectList = (resultHandler, errorHandler) => {
+					fetch(`/minio/ui/api/v1/buckets/${bucket.name}/objects`).then((res) => {
 						if (res.ok) { return res.json(); }
 						if (errorHandler) { errorHandler(res); }
 						throw res;
 					}).then((data) => {
 						let objects = data.objects ? data.objects : [];
-						objects.forEach((object) => { window.common.data._set_object_functions_(object.name, object); });
+						objects.forEach((object) => { window.common.data._set_object_functions_(bucket.name, object); });
 						if (resultHandler) { resultHandler(objects); }
 					});
 				}
