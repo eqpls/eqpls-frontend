@@ -43,7 +43,7 @@ window.common.init = (mainHandler) => {
 		return window.common.auth.setOrg();
 	};
 
-	/*
+	/* // DataService
 	window.common.auth.loginTermService = (resultHandler, errorHandler) => {
 		if (window.common.env.isTermService) {
 			window.common.auth.termToken = localStorage.getItem("authTermToken");
@@ -147,22 +147,26 @@ window.common.init = (mainHandler) => {
 			"Accept": "application/json; charset=utf-8",
 			"Authorization": `Bearer ${window.common.auth.accessToken}`
 		};
+		window.common.auth.checkUserInfo(resultHandler, errorHandler);
+
+		/* // DataService
 		window.common.auth.checkUserInfo(() => {
 			window.common.auth.loginDataService(resultHandler, errorHandler);
 		}, errorHandler);
+		*/
 	};
 
 	window.common.auth.tokenDaemon = () => {
 		window.common.auth.keycloak.updateToken(5).then((refreshed) => {
 			if (refreshed) {
-				window.common.auth.dataToken = null;
+				//window.common.auth.dataToken = null; // DataService
 				window.common.auth.postLogin();
 			}
 			setTimeout(window.common.auth.tokenDaemon, 60000);
 		});
 	};
 
-	window.common.auth.login = (resultHandler, errorHandler) => {
+	window.common.auth.login = (redirectUri, resultHandler, errorHandler) => {
 		let keycloak = new Keycloak({
 			url: window.common.auth.url,
 			realm: window.common.auth.getOrg(),
@@ -173,8 +177,13 @@ window.common.init = (mainHandler) => {
 			window.common.auth.tokenDaemon();
 			window.common.auth.postLogin(resultHandler, errorHandler);
 		};
-		keycloak.onAuthError = () => { if (errorHandler) { errorHandler(); } };
-		keycloak.init({ onLoad: 'login-required' });
+		keycloak.onAuthError = () => {
+			if (errorHandler) { errorHandler(); }
+		};
+		keycloak.init({
+			onLoad: 'login-required',
+			redirectUri: redirectUri
+		});
 	};
 
 	window.common.auth.logout = () => {
@@ -240,15 +249,20 @@ window.common.init = (mainHandler) => {
 	};
 
 	// window.common.wsock ////////////////////////////
-	window.common.wsock.connect = (url, recvHandler, openHandler, closeHandler, errorHandler) => {
+	window.common.wsock.connect = (url, recvHandler, openHandler, closeHandler, errorHandler, recursiveConnect) => {
 		try {
 			let socket = new WebSocket(`wss://${window.common.env.endpoint}${url}`);
+			socket.sendData = (key, value) => { socket.send(JSON.stringify([key, value])) }
 			socket.onmessage = (event) => {
-				if (recvHandler) { recvHandler(event.data); }
+				if (recvHandler) { recvHandler(event.target, event.data); }
 			};
 			socket.onopen = (event) => {
 				console.log("wsock:open");
-				if (openHandler) { openHandler(event); }
+				event.target.sendData("auth", {
+					org: window.common.auth.getOrg(),
+					token: window.common.auth.accessToken
+				});
+				if (openHandler) { openHandler(event.target); }
 			};
 			socket.onclose = (event) => {
 				console.log("wsock:close");
@@ -257,6 +271,7 @@ window.common.init = (mainHandler) => {
 			socket.onerror = (event) => {
 				console.log("wsock:error");
 				if (errorHandler) { errorHandler(event); }
+				if (recursiveConnect) { window.common.wsock.connect(url, recvHandler, openHandler, closeHandler, errorHandler, recursiveConnect); }
 			};
 			return socket;
 		} catch (e) {
