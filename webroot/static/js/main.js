@@ -1,24 +1,21 @@
 // javascript here
 
-var main = () => {
+async function sampleWSockInitiator(socket) {
+	await socket.sendData("hello", "world");
+};
+
+async function sampleWSockReceiver(socket, data) {
+	console.log(data);
+};
+
+async function main() {
 	document.getElementById("eqpls-access-token").innerText = window.common.auth.accessToken;
 
 	window.common.wsock.connect(
 		"/router/websocket",
-		(socket, data) => {
-			console.log(data);
-		}, (socket) => {
-			socket.sendData("hello", "world");
-		}
+		sampleWSockReceiver,
+		sampleWSockInitiator
 	);
 };
 
-window.common.init(() => {
-	window.common.auth.login(
-		"/", // redirect url
-		main, // login success
-		() => { // login failed
-			console.error("login error");
-		}
-	);
-});
+window.common.init(main).login();
