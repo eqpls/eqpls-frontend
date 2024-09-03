@@ -10,8 +10,8 @@ window.common = window.common || {
 		window.common.term = {};
 
 		// tenant configurations //////////////////////////
-		window.common.env.tenant = "opera";
-		window.common.env.endpoint = "portal.sddc.lab";
+		window.common.env.tenant = "eqpls";
+		window.common.env.endpoint = "eqpls.com";
 		window.common.env.modules = {
 			data: true,
 			term: true
