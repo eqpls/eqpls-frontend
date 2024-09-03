@@ -18,4 +18,4 @@ async function main() {
 	);
 };
 
-window.common.init(main).login();
+window.common.init(main).auth.login();
