@@ -4,36 +4,31 @@ window.module.data = window.module.data || {
 		console.log("window.module.data start initialization");
 
 		window.module.data.login = () => {
-			if (window.common.env.modules.data) {
-				fetch("/minio/ui/api/v1/login").then((res) => {
+			fetch("/minio/ui/api/v1/login").then((res) => {
+				if (res.ok) { return res.json(); }
+				throw res;
+			}).then((data) => {
+				fetch(data.redirectRules[0].redirect).then((res) => {
 					if (res.ok) { return res.json(); }
 					throw res;
 				}).then((data) => {
-					console.log(data);
-					fetch(data.redirectRules[0].redirect).then((res) => {
-						if (res.ok) { return res.json(); }
-						throw res;
-					}).then((data) => {
-						data.state = decodeURIComponent(data.state);
-						console.log(data);
-						fetch("/minio/ui/api/v1/login/oauth2/auth", {
-							method: "POST",
-							headers: { "Content-Type": "application/json" },
-							body: JSON.stringify(data)
-						}).then((res) => {
-							if (res.ok) {
-								fetch("/minio/ui/cookie_to_data").then((res) => {
-									if (res.ok) { return res.json(); }
-									throw res;
-								}).then((data) => {
-									window.module.data.accessToken = data.token;
-								});
-							}
-							throw res;
-						});
+					data.state = decodeURIComponent(data.state);
+					fetch("/minio/ui/api/v1/login/oauth2/auth", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify(data)
+					}).then((res) => {
+						if (res.ok) {
+							fetch("/minio/ui/cookie_to_data").then((res) => {
+								if (res.ok) { return res.json(); }
+								throw res;
+							}).then((data) => {
+								window.module.data.accessToken = data.token;
+							});
+						} else { throw res; }
 					});
 				});
-			} else { throw "window.module.data is not supported"; }
+			});
 		};
 
 		window.module.data.getBuckets = async () => {

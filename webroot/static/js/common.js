@@ -12,20 +12,16 @@ window.common = window.common || {
 		// tenant configurations //////////////////////////
 		window.common.env.tenant = "eqpls";
 		window.common.env.endpoint = "eqpls.com";
-		window.common.env.modules = {
-			data: true,
-			term: true
-		}
 
 		// tenant post configurations /////////////////////
 		window.common.env.url = `https://${window.common.env.endpoint}`;
 
 		// login handlers
-		window.common.auth.loginMiddleWare = async () => {
+		window.common.loginMiddleWare = async () => {
 			console.log("bypass login middleware");
 		};
 
-		window.common.auth.logoutMiddleWare = async () => {
+		window.common.logoutMiddleWare = async () => {
 			console.log("bypass logout middleware");
 		};
 
@@ -58,22 +54,22 @@ window.common = window.common || {
 		// window.common.auth /////////////////////////////
 		window.common.auth.url = `${window.common.env.url}/auth`;
 
-		window.common.auth.setOrg = (org) => {
+		window.common.setOrg = (org) => {
 			if (org) { window.common.auth.org = org; }
 			else { window.common.auth.org = window.common.env.tenant; }
 			return window.common.auth.org;
 		};
 
-		window.common.auth.getOrg = () => {
+		window.common.getOrg = () => {
 			if (window.common.auth.org) { return window.common.auth.org; }
-			return window.common.auth.setOrg();
+			return window.common.setOrg();
 		};
 
 		//// window.common.auth login library /////////////
-		window.common.auth.login = (redirectUri) => {
+		window.common.login = (redirectUri) => {
 			let keycloak = new Keycloak({
 				url: window.common.auth.url,
-				realm: window.common.auth.getOrg(),
+				realm: window.common.getOrg(),
 				clientId: window.common.env.tenant
 			});
 			keycloak.onAuthSuccess = () => {
@@ -88,7 +84,7 @@ window.common = window.common || {
 						"Content-Type": "application/json; charset=utf-8",
 						"Accept": "application/json; charset=utf-8"
 					};
-					return window.common.auth.loginMiddleWare().then(window.common.auth.checkUserInfo);
+					return window.common.loginMiddleWare().then(window.common.auth.checkUserInfo);
 				};
 				window.common.auth.postLogin().then(() => {
 					window.common.auth.startTokenDaemon();
@@ -105,8 +101,8 @@ window.common = window.common || {
 			});
 		};
 
-		window.common.auth.logout = async (redirectUri) => {
-			window.common.auth.logoutMiddleWare().then(() => {
+		window.common.logout = async (redirectUri) => {
+			window.common.logoutMiddleWare().then(() => {
 				window.common.auth.keycloak.logout({
 					redirectUri: redirectUri ? redirectUri : "/"
 				}).catch((error) => {
@@ -119,7 +115,7 @@ window.common = window.common || {
 		};
 
 		window.common.auth.checkUserInfo = async () => {
-			return fetch(`/auth/realms/${window.common.auth.getOrg()}/protocol/openid-connect/userinfo`, {
+			return fetch(`/auth/realms/${window.common.getOrg()}/protocol/openid-connect/userinfo`, {
 				headers: window.common.auth.headers
 			}).then((res) => {
 				if (res.ok) { return res.json(); }
@@ -202,7 +198,7 @@ window.common = window.common || {
 			socket.onopen = (event) => {
 				console.log("wsock:open");
 				event.target.sendData("auth", {
-					org: window.common.auth.getOrg(),
+					org: window.common.getOrg(),
 					token: window.common.auth.accessToken
 				});
 				if (initiator) { initiator(event.target); }

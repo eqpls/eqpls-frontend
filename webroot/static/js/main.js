@@ -9,6 +9,8 @@ async function sampleWSockReceiver(socket, data) {
 };
 
 async function main() {
+	window.module.data.login();
+
 	document.getElementById("eqpls-access-token").innerText = window.common.auth.accessToken;
 
 	window.common.wsock.connect(
@@ -18,4 +20,4 @@ async function main() {
 	);
 };
 
-window.common.init(main).auth.login();
+window.common.init(main).login();
