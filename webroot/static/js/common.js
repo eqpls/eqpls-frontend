@@ -53,6 +53,68 @@ window.common = window.common || {
 			document.cookie = name + '=; expires=Thu, 01 Jan 1999 00:00:10 GMT;';
 		};
 
+		window.common.util.setArrayFunctions = (arr, obj) => {
+			arr.len = () => { return arr.length; };
+			arr.empty = () => {
+				if (arr.len() == 0) { return true; }
+				else { return false; }
+			};
+			arr.findById = (id) => {
+				arr.forEach((content) => { if (id == content.id) { return content; } });
+				return None
+			};
+			arr.searchByName = (name) => {
+				let result = [];
+				arr.forEach((content) => { if (content.name.indexOf(name) > -1) { result.push(content); } });
+				return setArrayFunctions(result, arr.obj);
+			};
+			arr.searchByField = (field, value) => {
+				let result = [];
+				arr.forEach((content) => { if (value == content[field]) { result.push(content); } });
+				return setArrayFunctions(result, arr.obj);
+			};
+			arr.sortAscBy = (field) => {
+				if (!arr.empty()) {
+					let val = arr[0][field]
+					if (typeof val == "string") {
+						arr.sort((a, b) => {
+							let aval = a[field];
+							let bval = b[field];
+							return aval < bval ? -1 : aval > bval ? 1 : 0;
+						});
+					} else if (typeof val == "number") {
+						arr.sort((a, b) => { return a[field] - b[field]; });
+					} else {
+						console.error("could not sort", arr);
+					}
+				}
+				return arr;
+			};
+			arr.sortDescBy = (field) => {
+				if (!arr.empty()) {
+					let val = arr[0][field]
+					if (typeof val == "string") {
+						arr.sort((a, b) => {
+							let aval = a[field];
+							let bval = b[field];
+							return aval > bval ? -1 : aval < bval ? 1 : 0;
+						});
+					} else if (typeof val == "number") {
+						arr.sort((a, b) => { return b[field] - a[field]; });
+					} else {
+						console.error("could not sort", arr);
+					}
+				}
+				return arr
+			};
+			arr.print = () => {
+				if (arr.empty()) { console.log(`${arr.obj.name}s is empty array`); }
+				else { console.log(`${arr.obj.name}s`, arr); }
+			};
+			arr.obj = obj;
+			return arr;
+		};
+
 		// window.common.auth /////////////////////////////
 		window.common.auth.url = `${window.common.env.url}/auth`;
 
