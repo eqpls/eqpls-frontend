@@ -127,12 +127,13 @@ window.common = window.common || {
 		};
 
 		window.common.auth.startTokenDaemon = () => {
+			console.log("token daemon");
 			window.common.auth.keycloak.updateToken(5).then((refreshed) => {
 				if (refreshed) {
 					console.log("token refreshed");
 					window.common.auth.postLogin();
 				}
-				setTimeout(window.common.auth.startTokenDaemon, 60000);
+				setTimeout(window.common.auth.startTokenDaemon, 10000);
 			});
 		};
 
