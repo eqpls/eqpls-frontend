@@ -1,5 +1,7 @@
 window.common = window.common || {
 	init: (main) => {
+		console.log("window.common start initialization");
+
 		// common definitions ////////////////////////////
 		window.common.env = {};
 		window.common.util = {};
@@ -127,13 +129,12 @@ window.common = window.common || {
 		};
 
 		window.common.auth.startTokenDaemon = () => {
-			console.log("token daemon");
-			window.common.auth.keycloak.updateToken(5).then((refreshed) => {
+			window.common.auth.keycloak.updateToken(300).then((refreshed) => {
 				if (refreshed) {
 					console.log("token refreshed");
 					window.common.auth.postLogin();
 				}
-				setTimeout(window.common.auth.startTokenDaemon, 10000);
+				setTimeout(window.common.auth.startTokenDaemon, 60000);
 			});
 		};
 
@@ -214,6 +215,8 @@ window.common = window.common || {
 		if (window.module) {
 			for (let key in window.module) { window.module[key].init(); }
 		}
+
+		console.log("window.common is ready");
 
 		return window.common;
 	}
