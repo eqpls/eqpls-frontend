@@ -26,26 +26,49 @@ window.common = window.common || {
 		window.common.util.parseQueryToMap = (query) => {
 			let map = {};
 			query.replace("?", "").split("&").forEach((q) => {
-				let kv = q.split("=");
-				map[kv[0]] = kv[1];
+				if (q) {
+					let kv = q.split("=");
+					map[kv[0]] = kv[1];
+				}
 			});
 			return map;
 		};
+		window.common.util.getQueryMap = () => {
+			return window.common.util.parseQueryToMap(window.location.search);
+		};
+
+		window.common.util.parseHashToMap = (hash) => {
+			let map = {};
+			hash.replace("#", "").split("&").forEach((h) => {
+				if (h) {
+					let kv = h.split("=");
+					map[kv[0]] = kv[1];
+				}
+			});
+			return map;
+		};
+		window.common.util.getHashMap = () => {
+			return window.common.util.parseHashToMap(window.location.hash);
+		};
 
 		window.common.util.getCookie = (name) => {
-			var value = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+			let value = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
 			return value ? value[2] : null;
 		};
 
-		window.common.util.setCookie = (name, value, expire) => {
+		window.common.util.setCookie = (name, value, expire, path) => {
 			if (!expire) { expire = 3600; }
+			if (!path) { path = "/"; }
 			var date = new Date();
 			date.setTime(date.getTime() + expire * 1000);
-			document.cookie = name + '=' + value + ';expires=' + date.toUTCString() + ';path=/';
+			document.cookie = `${name}=${value};expires=${date.toUTCString()};path=${path}`;
+			//document.cookie = name + '=' + value + ';expires=' + date.toUTCString() + `;path=${path}`;
 		};
 
-		window.common.util.delCookie = (name) => {
-			document.cookie = name + '=; expires=Thu, 01 Jan 1999 00:00:10 GMT;';
+		window.common.util.delCookie = (name, path) => {
+			if (!path) { path = "/"; }
+			document.cookie = `${name}=;expires=Thu, 01 Jan 1999 00:00:10 UTC;path=${path}`;
+			//document.cookie = name + '=; expires=Thu, 01 Jan 1999 00:00:10 GMT;';
 		};
 
 		window.common.util.setArrayFunctions = (arr, obj) => {

@@ -7,7 +7,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="description" content="">
-<meta name="author" content="example.com">
+<meta name="author" content="eqpls.com">
 
 <title>EQPLS</title>
 
@@ -41,6 +41,7 @@
 		<div>
 			<h1>Hello World !!!</h1>
 			<input type="button" onclick="window.common.logout();" value="LogOut" />
+			<input type="button" onclick="window.module.term.openSSH('root', 'vmkloud.com', 8922);" value="Connect"/>
 		</div>
 		<div>
 			<p id="eqpls-access-token"></p>
@@ -54,6 +55,7 @@
 
 	<script src="/static/js/common.js"></script>
 	<script src="/static/js/data.js"></script>
+	<script src="/static/js/term.js"></script>
 	<script src="/static/js/main.js"></script>
 
 </body>

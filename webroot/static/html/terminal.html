@@ -57,22 +57,11 @@
 	<script src="/static/vendor/guacamole/guacamole.min.js"></script>
 
 	<script src="/static/js/common.js"></script>
+	<script src="/static/js/term.js"></script>
 
 	<script>
-
-window.common.init(()=> {
-	window.common.auth.checkUserInfo(()=> {
-		if (!window.location.search) { window.common.term.closeByException("연결 정보가 없습니다"); }
-		let params = window.common.util.parseQueryToMap(window.location.search);
-		let username = params.username ? params.username : window.common.term.closeByException("사용자 계정 정보가 없습니다");
-		let hostname = params.hostname ? params.hostname : window.common.term.closeByException("호스트 연결 정보가 없습니다");
-		let hostport = params.hostport ? params.hostport : "22";
-		window.common.term.openOnDom(document.getElementById("terminial-canvas"), username, hostname, hostport);
-	}, ()=> {
-		window.common.term.closeByException("인증 정보가 없습니다");
-	});
-});
-
+window.common.init();
+window.module.term.connect(document.getElementById("terminial-canvas"));
 	</script>
 
 </body>
