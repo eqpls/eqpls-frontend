@@ -62,13 +62,11 @@ window.common = window.common || {
 			var date = new Date();
 			date.setTime(date.getTime() + expire * 1000);
 			document.cookie = `${name}=${value};expires=${date.toUTCString()};path=${path}`;
-			//document.cookie = name + '=' + value + ';expires=' + date.toUTCString() + `;path=${path}`;
 		};
 
 		window.common.util.delCookie = (name, path) => {
 			if (!path) { path = "/"; }
 			document.cookie = `${name}=;expires=Thu, 01 Jan 1999 00:00:10 UTC;path=${path}`;
-			//document.cookie = name + '=; expires=Thu, 01 Jan 1999 00:00:10 GMT;';
 		};
 
 		window.common.util.setArrayFunctions = (arr, obj) => {
