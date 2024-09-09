@@ -1,8 +1,8 @@
 window.module = window.module || {};
 window.module.data = window.module.data || {
 	init: () => {
-		console.log("window.module.data start initialization");
-
+		window.module.data.isAutoLogin = true;
+		console.log("(window.module.data) initialize");
 		window.module.data.login = () => {
 			fetch("/minio/ui/api/v1/login").then((res) => {
 				if (res.ok) { return res.json(); }
@@ -35,7 +35,7 @@ window.module.data = window.module.data || {
 											content.owner = sname[0];
 											content.displayName = sname[1];
 											content.personal = content.owner == window.common.auth.username ? true : false;
-											result.push(Object.assign(new Bucket(), content));
+											result.push(new Bucket(content));
 										});
 										return window.common.util.setArrayFunctions(result, Bucket);
 									});
@@ -47,7 +47,7 @@ window.module.data = window.module.data || {
 			});
 		};
 
-		function Bucket() {
+		function Bucket(content) {
 			this.getNodes = async () => {
 				return fetch(`/minio/ui/api/v1/buckets/${this.name}/objects`).then((res) => {
 					if (res.ok) { return res.json(); }
@@ -58,8 +58,8 @@ window.module.data = window.module.data || {
 					data.objects.forEach((content) => {
 						content.bucket = this;
 						content.parent = this;
-						if (content.etag) { files.push(Object.assign(new File(), content)); }
-						else { folders.push(Object.assign(new Folder(), content)); }
+						if (content.etag) { files.push(new File(content)); }
+						else { folders.push(new Folder(content)); }
 					});
 					return {
 						folders: window.common.util.setArrayFunctions(folders, Folder),
@@ -67,7 +67,6 @@ window.module.data = window.module.data || {
 					};
 				});
 			};
-
 			this.upload = async (files) => {
 				let results = [];
 				if (files.length > 0) {
@@ -89,12 +88,10 @@ window.module.data = window.module.data || {
 				}
 				return results;
 			};
-
-			this.checkpoint = () => { window.module.data.Bucket = this; };
 			this.print = () => { console.log(this); };
 		};
 
-		function Folder() {
+		function Folder(content) {
 			this.getNodes = async () => {
 				return fetch(`/minio/ui/api/v1/buckets/${this.bucket.name}/objects?prefix=${btoa(this.name)}`).then((res) => {
 					if (res.ok) { return res.json(); }
@@ -105,8 +102,8 @@ window.module.data = window.module.data || {
 					data.objects.forEach((content) => {
 						content.bucket = this.bucket;
 						content.parent = this;
-						if (content.etag) { files.push(Object.assign(new File(), content)); }
-						else { folders.push(Object.assign(new Folder(), content)); }
+						if (content.etag) { files.push(new File(content)); }
+						else { folders.push(new Folder(content)); }
 					});
 					return {
 						folders: window.common.util.setArrayFunctions(folders, Folder),
@@ -114,17 +111,14 @@ window.module.data = window.module.data || {
 					};
 				});
 			};
-
 			this.getParent = async () => { return this.parent; };
-
-			this.create = async (name) => {
-				return Object.assign(new Folder(), {
+			this.createFolder = async (name) => {
+				return new Folder({
 					last_modified: "",
 					name: `${this.name}${name}/`,
 					bucket: this.bucket
 				});
 			};
-
 			this.upload = async (files) => {
 				let results = [];
 				if (files.length > 0) {
@@ -147,7 +141,6 @@ window.module.data = window.module.data || {
 				}
 				return results;
 			};
-
 			this.delete = async () => {
 				return fetch(`/minio/ui/api/v1/buckets/${this.bucket.name}/objects?prefix=${btoa(this.name)}&recursive=true`, {
 					method: "DELETE"
@@ -156,21 +149,17 @@ window.module.data = window.module.data || {
 					throw res;
 				});
 			};
-
-			this.checkpoint = () => { window.module.data.Folder = this; };
 			this.print = () => { console.log(this); };
 		};
 
-		function File() {
+		function File(content) {
 			this.getParent = async () => { return this.parent; };
-
 			this.download = async () => {
 				return fetch(`/minio/ui/api/v1/buckets/${this.bucket.name}/objects/download?prefix=${file.name}`).then((res) => {
 					if (res.ok) { return res.blob(); }
 					throw res;
 				});
 			};
-
 			this.delete = async () => {
 				return fetch(`/minio/ui/api/v1/buckets/${this.bucket.name}/objects?prefix=${btoa(this.name)}`, {
 					method: "DELETE"
@@ -179,11 +168,9 @@ window.module.data = window.module.data || {
 					throw res;
 				});
 			};
-
-			this.checkpoint = () => { window.module.data.File = this; };
 			this.print = () => { console.log(this); };
 		};
 
-		console.log("window.module.data is ready");
+		console.log("(window.module.data) ready");
 	}
 };
