@@ -113,16 +113,9 @@ window.module.term = window.module.term || {
 			};
 			guac.onstatechange = (state) => {
 				switch (state) {
-					case 3:
-						console.log("connected");
-						break;
-					case 4:
-						console.log("logout");
-						break;
-					case 5:
-						console.log("disconnected");
-						window.close();
-						break;
+					case 3: console.log("connected"); break;
+					case 4: console.log("logout"); break;
+					case 5: console.log("disconnected"); window.close(); break;
 				}
 			};
 			guac.onclipboard = (stream, mimetype) => {
