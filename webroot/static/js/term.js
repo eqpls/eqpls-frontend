@@ -2,7 +2,7 @@ window.module = window.module || {};
 window.module.term = window.module.term || {
 	init: () => {
 		window.module.term.isAutoLogin = false;
-		console.log("(window.module.term) initialize");
+		console.log("(window.module.term) start");
 		window.module.term.requests = [];
 
 		// called from main index
@@ -150,5 +150,7 @@ window.module.term = window.module.term || {
 			window.alert(message);
 			window.close();
 		};
+
+		console.log("(window.module.term) ready");
 	}
 };

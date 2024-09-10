@@ -2,7 +2,7 @@ window.module = window.module || {};
 window.module.data = window.module.data || {
 	init: () => {
 		window.module.data.isAutoLogin = true;
-		console.log("(window.module.data) initialize");
+		console.log("(window.module.data) start");
 		window.module.data.login = () => {
 			fetch("/minio/ui/api/v1/login").then((res) => {
 				if (res.ok) { return res.json(); }

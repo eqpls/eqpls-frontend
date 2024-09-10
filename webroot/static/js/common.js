@@ -1,22 +1,16 @@
 window.common = window.common || {
 	init: (main) => {
-		console.log("(window.common) initialize");
+		console.log("(window.common) start");
 
 		// common definitions ////////////////////////////
-		window.common.env = {};
+		window.common.url = `https://${window.config.endpoint}`;
 		window.common.util = {};
 		window.common.auth = {};
 		window.common.rest = {};
 		window.common.wsock = {};
 
-		// tenant configurations //////////////////////////
-		window.common.env.tenant = "eqpls";
-		window.common.env.domain = "eqpls.com";
-		window.common.env.endpoint = "eqpls.com";
-		window.common.env.uerpUrl = "/uerp/v1";
+		// post configurations /////////////////////
 
-		// tenant post configurations /////////////////////
-		window.common.env.url = `https://${window.common.env.endpoint}`;
 
 		// login handlers
 		window.common.loginServiceProviders = async () => { };
@@ -132,11 +126,11 @@ window.common = window.common || {
 		};
 
 		// window.common.auth /////////////////////////////
-		window.common.auth.url = `${window.common.env.url}/auth`;
+		window.common.auth.url = `${window.common.url}/auth`;
 
 		window.common.setOrg = (org) => {
 			if (org) { window.common.auth.org = org; }
-			else { window.common.auth.org = window.common.env.tenant; }
+			else { window.common.auth.org = window.config.tenant; }
 			return window.common.auth.org;
 		};
 
@@ -150,7 +144,7 @@ window.common = window.common || {
 			let keycloak = new Keycloak({
 				url: window.common.auth.url,
 				realm: window.common.getOrg(),
-				clientId: window.common.env.tenant
+				clientId: window.config.tenant
 			});
 			keycloak.onAuthSuccess = () => {
 				window.common.auth.keycloak = keycloak;
@@ -215,16 +209,16 @@ window.common = window.common || {
 		};
 
 		//// window.common.auth model interfaces //////////
-		window.common.getSchema = async () => { return window.common.rest.get(`${window.common.env.uerpUrl}/schema`).then((content) => { return content; }); };
+		window.common.getSchema = async () => { return window.common.rest.get(`${window.config.uerpUrl}/schema`).then((content) => { return content; }); };
 
-		window.common.auth.readOrg = async (id) => { return window.common.rest.get(`${window.common.env.uerpUrl}/common/auth/org/${id}`).then((content) => { return new Org(content); }); };
+		window.common.auth.readOrg = async (id) => { return window.common.rest.get(`${window.config.uerpUrl}/common/auth/org/${id}`).then((content) => { return new Org(content); }); };
 		window.common.auth.countOrg = async (query) => {
 			if (query) {
 				let qstr = []
 				for (let key in query) { qstr.push(`${key}=${query[key]}`); }
 				query = `?${qstr.join("&")}`;
 			} else { query = ""; }
-			return window.common.rest.get(`${window.common.env.uerpUrl}/common/auth/org/count${query}`).then((content) => { return content });
+			return window.common.rest.get(`${window.config.uerpUrl}/common/auth/org/count${query}`).then((content) => { return content });
 		};
 		window.common.auth.searchOrg = async (query) => {
 			if (query) {
@@ -232,7 +226,7 @@ window.common = window.common || {
 				for (let key in query) { qstr.push(`${key}=${query[key]}`); }
 				query = `?${qstr.join("&")}`;
 			} else { query = ""; }
-			return window.common.rest.get(`${window.common.env.uerpUrl}/common/auth/org${query}`).then((contents) => {
+			return window.common.rest.get(`${window.config.uerpUrl}/common/auth/org${query}`).then((contents) => {
 				let results = [];
 				contents.forEach((content) => { results.push(new Org(content)); });
 				return window.common.util.setArrayFunctions(results, Org);
@@ -241,21 +235,21 @@ window.common = window.common || {
 		function Org(content) {
 			if (content) { Object.assign(this, content); }
 			this.reloadModel = async () => { return window.common.rest.get(this.uref).then((content) => { Object.assign(this, content); return this; }); };
-			this.createModel = async () => { return window.common.rest.post(`${window.common.env.uerpUrl}/common/auth/org`, this).then((content) => { Object.assign(this, content); return this; }); };
+			this.createModel = async () => { return window.common.rest.post(`${window.config.uerpUrl}/common/auth/org`, this).then((content) => { Object.assign(this, content); return this; }); };
 			this.updateModel = async () => { return window.common.rest.put(this.uref, this).then((content) => { Object.assign(this, content); return this; }); };
 			this.deleteModel = async () => { return window.common.rest.delete(this.uref).then((content) => { return content; }); };
 			this.print = () => { console.log(this); };
 		};
 		window.common.auth.Org = Org;
 
-		window.common.auth.readRole = async (id) => { return window.common.rest.get(`${window.common.env.uerpUrl}/common/auth/role/${id}`).then((content) => { return new Role(content); }); };
+		window.common.auth.readRole = async (id) => { return window.common.rest.get(`${window.config.uerpUrl}/common/auth/role/${id}`).then((content) => { return new Role(content); }); };
 		window.common.auth.countRole = async (query) => {
 			if (query) {
 				let qstr = []
 				for (let key in query) { qstr.push(`${key}=${query[key]}`); }
 				query = `?${qstr.join("&")}`;
 			} else { query = ""; }
-			return window.common.rest.get(`${window.common.env.uerpUrl}/common/auth/role/count${query}`).then((content) => { return content });
+			return window.common.rest.get(`${window.config.uerpUrl}/common/auth/role/count${query}`).then((content) => { return content });
 		};
 		window.common.auth.searchRole = async (query) => {
 			if (query) {
@@ -263,7 +257,7 @@ window.common = window.common || {
 				for (let key in query) { qstr.push(`${key}=${query[key]}`); }
 				query = `?${qstr.join("&")}`;
 			} else { query = ""; }
-			return window.common.rest.get(`${window.common.env.uerpUrl}/common/auth/role${query}`).then((contents) => {
+			return window.common.rest.get(`${window.config.uerpUrl}/common/auth/role${query}`).then((contents) => {
 				let results = [];
 				contents.forEach((content) => { results.push(new Role(content)); });
 				return window.common.util.setArrayFunctions(results, Role);
@@ -272,21 +266,21 @@ window.common = window.common || {
 		function Role(content) {
 			if (content) { Object.assign(this, content); }
 			this.reloadModel = async () => { return window.common.rest.get(this.uref).then((content) => { Object.assign(this, content); return this; }); };
-			this.createModel = async () => { return window.common.rest.post(`${window.common.env.uerpUrl}/common/auth/role`, this).then((content) => { Object.assign(this, content); return this; }); };
+			this.createModel = async () => { return window.common.rest.post(`${window.config.uerpUrl}/common/auth/role`, this).then((content) => { Object.assign(this, content); return this; }); };
 			this.updateModel = async () => { return window.common.rest.put(this.uref, this).then((content) => { Object.assign(this, content); return this; }); };
 			this.deleteModel = async () => { return window.common.rest.delete(this.uref).then((content) => { return content; }); };
 			this.print = () => { console.log(this); };
 		};
 		window.common.auth.Role = Role;
 
-		window.common.auth.readGroup = async (id) => { return window.common.rest.get(`${window.common.env.uerpUrl}/common/auth/group/${id}`).then((content) => { return new Group(content); }); };
+		window.common.auth.readGroup = async (id) => { return window.common.rest.get(`${window.config.uerpUrl}/common/auth/group/${id}`).then((content) => { return new Group(content); }); };
 		window.common.auth.countGroup = async (query) => {
 			if (query) {
 				let qstr = []
 				for (let key in query) { qstr.push(`${key}=${query[key]}`); }
 				query = `?${qstr.join("&")}`;
 			} else { query = ""; }
-			return window.common.rest.get(`${window.common.env.uerpUrl}/common/auth/group/count${query}`).then((content) => { return content });
+			return window.common.rest.get(`${window.config.uerpUrl}/common/auth/group/count${query}`).then((content) => { return content });
 		};
 		window.common.auth.searchGroup = async (query) => {
 			if (query) {
@@ -294,7 +288,7 @@ window.common = window.common || {
 				for (let key in query) { qstr.push(`${key}=${query[key]}`); }
 				query = `?${qstr.join("&")}`;
 			} else { query = ""; }
-			return window.common.rest.get(`${window.common.env.uerpUrl}/common/auth/group${query}`).then((contents) => {
+			return window.common.rest.get(`${window.config.uerpUrl}/common/auth/group${query}`).then((contents) => {
 				let results = [];
 				contents.forEach((content) => { results.push(new Group(content)); });
 				return window.common.util.setArrayFunctions(results, Group);
@@ -303,21 +297,21 @@ window.common = window.common || {
 		function Group(content) {
 			if (content) { Object.assign(this, content); }
 			this.reloadModel = async () => { return window.common.rest.get(this.uref).then((content) => { Object.assign(this, content); return this; }); };
-			this.createModel = async () => { return window.common.rest.post(`${window.common.env.uerpUrl}/common/auth/group`, this).then((content) => { Object.assign(this, content); return this; }); };
+			this.createModel = async () => { return window.common.rest.post(`${window.config.uerpUrl}/common/auth/group`, this).then((content) => { Object.assign(this, content); return this; }); };
 			this.updateModel = async () => { return window.common.rest.put(this.uref, this).then((content) => { Object.assign(this, content); return this; }); };
 			this.deleteModel = async () => { return window.common.rest.delete(this.uref).then((content) => { return content; }); };
 			this.print = () => { console.log(this); };
 		};
 		window.common.auth.Group = Group;
 
-		window.common.auth.readAccount = async (id) => { return window.common.rest.get(`${window.common.env.uerpUrl}/common/auth/account/${id}`).then((content) => { return new Account(content); }); };
+		window.common.auth.readAccount = async (id) => { return window.common.rest.get(`${window.config.uerpUrl}/common/auth/account/${id}`).then((content) => { return new Account(content); }); };
 		window.common.auth.countAccount = async (query) => {
 			if (query) {
 				let qstr = []
 				for (let key in query) { qstr.push(`${key}=${query[key]}`); }
 				query = `?${qstr.join("&")}`;
 			} else { query = ""; }
-			return window.common.rest.get(`${window.common.env.uerpUrl}/common/auth/account/count${query}`).then((content) => { return content });
+			return window.common.rest.get(`${window.config.uerpUrl}/common/auth/account/count${query}`).then((content) => { return content });
 		};
 		window.common.auth.searchAccount = async (query) => {
 			if (query) {
@@ -325,7 +319,7 @@ window.common = window.common || {
 				for (let key in query) { qstr.push(`${key}=${query[key]}`); }
 				query = `?${qstr.join("&")}`;
 			} else { query = ""; }
-			return window.common.rest.get(`${window.common.env.uerpUrl}/common/auth/account${query}`).then((contents) => {
+			return window.common.rest.get(`${window.config.uerpUrl}/common/auth/account${query}`).then((contents) => {
 				let results = [];
 				contents.forEach((content) => { results.push(new Account(content)); });
 				return window.common.util.setArrayFunctions(results, Account);
@@ -334,7 +328,7 @@ window.common = window.common || {
 		function Account(content) {
 			if (content) { Object.assign(this, content); }
 			this.reloadModel = async () => { return window.common.rest.get(this.uref).then((content) => { Object.assign(this, content); return this; }); };
-			this.createModel = async () => { return window.common.rest.post(`${window.common.env.uerpUrl}/common/auth/account`, this).then((content) => { Object.assign(this, content); return this; }); };
+			this.createModel = async () => { return window.common.rest.post(`${window.config.uerpUrl}/common/auth/account`, this).then((content) => { Object.assign(this, content); return this; }); };
 			this.updateModel = async () => { return window.common.rest.put(this.uref, this).then((content) => { Object.assign(this, content); return this; }); };
 			this.deleteModel = async () => { return window.common.rest.delete(this.uref).then((content) => { return content; }); };
 			this.print = () => { console.log(this); };
@@ -397,7 +391,7 @@ window.common = window.common || {
 
 		// window.common.wsock ////////////////////////////
 		window.common.wsock.connect = (url, receiver, initiator, closer) => {
-			let socket = new WebSocket(`wss://${window.common.env.endpoint}${url}`);
+			let socket = new WebSocket(`wss://${window.config.endpoint}${url}`);
 			socket.sendData = async (key, value) => { return socket.send(JSON.stringify([key, value])); };
 			socket.onmessage = (event) => { receiver(event.target, event.data); };
 			socket.onerror = (event) => { console.error("(wsock) error", event); };
