@@ -2,13 +2,13 @@ window.module = window.module || {};
 window.module.term = window.module.term || {
 	init: () => {
 		window.module.term.isAutoLogin = false;
-		console.log("(window.module.term) start");
+		console.log("(module.term) start");
 		window.module.term.requests = [];
 
 		// called from main index
 		window.module.term.openSSH = (username, hostname, hostport, target, options) => {
-			if (!username) { throw "(window.module.term.openSSH) username parameter is required"; }
-			if (!hostname) { throw "(window.module.term.openSSH) hostname parameter is required"; }
+			if (!username) { throw "(module.term.openSSH) username parameter is required"; }
+			if (!hostname) { throw "(module.term.openSSH) hostname parameter is required"; }
 			hostport = hostport ? hostport : 22;
 			target = target ? target : "_blank";
 			options = options ? options : "menubar=no,status=no,titlebar=no,toolbar=no";
@@ -29,7 +29,7 @@ window.module.term = window.module.term || {
 			if (connection) { connection = JSON.parse(connection); }
 			else {
 				window.module.term.closeByException("연결 요청 정보가 없습니다");
-				throw "(window.module.term.connect) could not find connection info";
+				throw "(module.term.connect) could not find connection info";
 			}
 
 			if (token) {
@@ -51,7 +51,7 @@ window.module.term = window.module.term || {
 							});
 						} else {
 							window.module.term.closeByException("지원하지 않는 연결 형식 입니다");
-							throw "(window.module.term.connect) could not support connection type";
+							throw "(module.term.connect) could not support connection type";
 						}
 					} else {
 						window.common.util.delCookie("Guac-Token", "/static/html/terminal.html");
@@ -88,7 +88,7 @@ window.module.term = window.module.term || {
 							});
 						} else {
 							window.module.term.closeByException("지원하지 않는 연결 형식 입니다");
-							throw "(window.module.term.connect) could not support connection type";
+							throw "(module.term.connect) could not support connection type";
 						}
 					});
 				} else {
@@ -151,6 +151,6 @@ window.module.term = window.module.term || {
 			window.close();
 		};
 
-		console.log("(window.module.term) ready");
+		console.log("(module.term) ready");
 	}
 };

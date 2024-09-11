@@ -1,15 +1,15 @@
 // javascript here
 
-window.common.init(async () => { // main task
-	document.getElementById("eqpls-access-token").innerText = window.common.auth.accessToken;
-
-	window.common.wsock.connect(
+common.init(async () => { // main task
+	document.getElementById("eqpls-access-token").innerText = common.auth.accessToken;
+	
+	common.wsock.connect(
 		"/router/websocket", // wsock url
-		async () => { // initiator
-			await socket.sendData("hello", "world");
-		},
 		async (socket, data) => { // receiver
 			console.log(socket, data);
+		},
+		async (socket) => { // initiator
+			await socket.sendData("hello", "world");
 		}
 	);
 }).login();

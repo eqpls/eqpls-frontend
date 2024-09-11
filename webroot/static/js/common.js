@@ -1,6 +1,6 @@
 window.common = window.common || {
 	init: (main) => {
-		console.log("(window.common) start");
+		console.log("(common) start");
 
 		// common definitions ////////////////////////////
 		window.common.url = `https://${window.config.endpoint}`;
@@ -17,6 +17,21 @@ window.common = window.common || {
 		window.common.logoutServiceProviders = async () => { };
 
 		// window.common.util /////////////////////////////
+		window.common.util.utoa = (str) => {
+			return window.btoa(unescape(encodeURIComponent(str)));
+		};
+		
+		window.common.util.atou = (str) => {
+			return decodeURIComponent(escape(window.atob(str)));
+		};
+		
+		window.common.util.getRandomString = (length) => {
+		    let result = "";
+		    let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+			for (let i = 0; i < length; i++) { result += characters.charAt(Math.floor(Math.random() * 62)); }
+		    return result;
+		};
+		
 		window.common.util.parseQueryToMap = (query) => {
 			let map = {};
 			query.replace("?", "").split("&").forEach((q) => {
@@ -411,7 +426,7 @@ window.common = window.common || {
 		};
 
 		if (window.module) { for (let key in window.module) { window.module[key].init(); }; }
-		console.log("(window.common) ready");
+		console.log("(common) ready");
 		return window.common;
 	}
 };
