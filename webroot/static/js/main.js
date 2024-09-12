@@ -3,15 +3,15 @@
 Common.init(async () => { // main task
 	document.getElementById("eqpls-access-token").innerText = Common.Auth.accessToken;
 
-	console.log(await DB.Test.t1.write("jhc", {id:"jhc",val:"janghyechurn"}));
-	console.log(await DB.Test.t1.readAll());
-	console.log(await DB.Test.t1.read("jhc"));
-	console.log(await DB.Test.t1.write("jhc", {id:"jhc",val:"JHC"}));
-	console.log(await DB.Test.t1.readAll());
-	console.log(await DB.Test.t1.read("jhc"));
-	console.log(await DB.Test.t1.delete("jhc"));
-	console.log(await DB.Test.t1.readAll());
-	console.log(await DB.Test.t1.read("jhc"));
+	console.log(await Common.DB.Test.t1.write("jhc", {id:"jhc",val:"janghyechurn"}));
+	console.log(await Common.DB.Test.t1.readAll());
+	console.log(await Common.DB.Test.t1.read("jhc"));
+	console.log(await Common.DB.Test.t1.write("jhc", {id:"jhc",val:"JHC"}));
+	console.log(await Common.DB.Test.t1.readAll());
+	console.log(await Common.DB.Test.t1.read("jhc"));
+	console.log(await Common.DB.Test.t1.delete("jhc"));
+	console.log(await Common.DB.Test.t1.readAll());
+	console.log(await Common.DB.Test.t1.read("jhc"));
 
 	Common.WSock.connect(
 		"/router/websocket", // wsock url

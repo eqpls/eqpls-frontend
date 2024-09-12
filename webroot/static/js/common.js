@@ -6,11 +6,11 @@ window.Common = window.Common || {
 		window.Common.url = `https://${window.Config.endpoint}`;
 		window.Common.uerpUrl = `/${window.Config.uerp}/v${window.Config.version}`;
 		window.Common.Util = window.Common.Util || {};
+		window.Common.DB = window.Common.DB || {};
 		window.Common.Session = window.Common.Session || { Query: {}, Hash: {}, Cookie: {}};
 		window.Common.Auth = window.Common.Auth || {};
 		window.Common.Rest = window.Common.Rest || {};
 		window.Common.WSock = window.Common.WSock || {};
-		window.DB = window.DB || {};
 
 		// login service provider handlers ////////////////
 		window.Common.loginServiceProviders = window.Common.loginServiceProviders || async function() { };
@@ -92,31 +92,27 @@ window.Common = window.Common || {
 			return arr;
 		};
 
-		// window.DB //////////////////////////////////////
-		window.DB._databases = window.Config.databases;
-		window.DB._databases.Blob = ["index"];
+		// window.Common.DB ///////////////////////////////
+		window.Common.DB._databases = window.Config.databases;
+		window.Common.DB._databases.Blob = ["index"];
 
 		function Database (name, tables) {
 			this._name = name;
-			return new Promise((resultHandler) => {
-				let request = window.indexedDB.open(this._name, 1);
-				request.onsuccess = () => {
-					this._conn = request.result;
-					tables.forEach((table) => { this[table] = new Table(table, this); });
-					window.DB[name] = this;
-					resultHandler(request.result);
-				};
-				request.onupgradeneeded = () => {
-					tables.forEach((table) => { request.result.createObjectStore(table, {keyPath: "id"}); });
-					window.DB[name] = this;
-					resultHandler(request.result);
-				};
-				request.onerror = () => {
-					console.error("could not create database");
-					window.DB.pop(name);
-					resultHandler(request.result);
-				};
-			});
+			this._tables = [];
+			let request = window.indexedDB.open(this._name, 1);
+			request.onsuccess = () => {
+				this._conn = request.result;
+				tables.forEach((table) => { this[table] = new Table(table, this); });
+				window.Common.DB[name] = this;
+			};
+			request.onupgradeneeded = () => {
+				tables.forEach((table) => { request.result.createObjectStore(table, {keyPath: "id"}); });
+				window.Common.DB[name] = this;
+			};
+			request.onerror = () => {
+				console.error("could not create database");
+				window.Common.DB.pop(name);
+			};
 		};
 
 		function Table (name, db) {
@@ -151,6 +147,7 @@ window.Common = window.Common || {
 					request.onerror = () => { resultHandler(request); };
 				});
 			};
+			this._db._tables.push(name);
 			console.log(`(DB.${this._db._name}.${name}) table is created`);
 		};
 
@@ -239,13 +236,20 @@ window.Common = window.Common || {
 				window.Common.Auth.postLogin().then(() => {
 					if (window.Module) { for (let key in window.Module) { if (window.Module[key].isAutoLogin) { window.Module[key].login(); } }; }
 					window.Common.Auth.startTokenDaemon();
-
-					let databaseNames = Object.keys(window.DB._databases);
-					let waitDatabase = databaseNames.length;
-					databaseNames.forEach(async (name) => {
-						let db = await new Database(name, window.DB._databases[name]);
-						if (!(--waitDatabase)) { main(); }
-					});
+					let databaseNames = Object.keys(window.Common.DB._databases);
+					databaseNames.forEach((name) => { new Database(name, window.Common.DB._databases[name]); });
+					function waitStableForMain () {
+						try {
+							for (let i = 0; i < databaseNames.length; i++) {
+								let name = databaseNames[i];
+								let innerList = window.Common.DB[name]._tables.sort().join(',');
+								let outerList = window.Common.DB._databases[name].sort().join(',');
+								if (innerList != outerList) { return setTimeout(checkDB, 200); }
+							}
+						} catch (e) { return setTimeout(waitStableForMain, 200); }
+						main();
+					};
+					waitStableForMain();
 				});
 			};
 			keycloak.onAuthError = () => {

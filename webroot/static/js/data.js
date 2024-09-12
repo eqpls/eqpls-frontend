@@ -253,13 +253,13 @@ window.Module.Data = window.Module.Data || {
 			if (content) { Object.assign(this, content); }
 			this.getParent = async () => { return this.parent; };
 			this.load = async () => {
-				let data = await DB.Blob.index.read(this.etag)
+				let data = await Common.DB.Blob.index.read(this.etag)
 				if (data) { return data.blob; }
 				blob = await fetch(`/minio/api/v1/buckets/${this.bucket.externalId}/objects/download?prefix=${Common.Util.utoa(this.name)}`).then((res) => {
 					if (res.ok) { return res.blob(); }
 					throw res;
 				});
-				await DB.Blob.index.write(this.etag, {blob:blob});
+				await Common.DB.Blob.index.write(this.etag, {blob:blob});
 				return blob;
 			};
 			this.download = async () => {
@@ -275,7 +275,7 @@ window.Module.Data = window.Module.Data || {
 				return blob;
 			};
 			this.delete = async () => {
-				await DB.Blob.index.delete(this.etag);
+				await Common.DB.Blob.index.delete(this.etag);
 				return fetch(`/minio/api/v1/buckets/${this.bucket.externalId}/objects?prefix=${Common.Util.utoa(this.name)}`, {
 					method: "DELETE"
 				}).then((res) => {
