@@ -1,10 +1,10 @@
-window.module = window.module || {};
-window.module.data = window.module.data || {
+window.Module = window.Module || {};
+window.Module.Data = window.Module.Data || {
 	init: () => {
-		window.module.data.isAutoLogin = true;
-		console.log("(module.data) start");
-		window.module.data.login = () => {
-			fetch("/objstore/api/v1/login").then((res) => {
+		window.Module.Data.isAutoLogin = true;
+		console.log("(Module.Data) start");
+		window.Module.Data.login = () => {
+			fetch("/minio/api/v1/login").then((res) => {
 				if (res.ok) { return res.json(); }
 				throw res;
 			}).then((data) => {
@@ -13,34 +13,56 @@ window.module.data = window.module.data || {
 					throw res;
 				}).then((data) => {
 					data.state = decodeURIComponent(data.state);
-					fetch("/objstore/api/v1/login/oauth2/auth", {
+					fetch("/minio/api/v1/login/oauth2/auth", {
 						method: "POST",
 						headers: { "Content-Type": "application/json" },
 						body: JSON.stringify(data)
 					}).then((res) => {
 						if (res.ok) {
-							window.module.data.getBuckets = async () => {
-								return fetch("/objstore/api/v1/buckets").then((res) => {
+							window.Module.Data.getBuckets = async () => {
+								return fetch("/minio/api/v1/buckets").then((res) => {
 									if (res.ok) { return res.json(); }
 									throw res;
-								}).then((data) => {
-									let result = [];
-									data.buckets.forEach((content) => {
+								}).then(async (data) => {
+									let groupBuckets = [];
+									let userBuckets = [];
+									let groupCoros = [];
+									let userCoros = [];
+									for (let i = 0; i < data.buckets.length; i++) {
+										let content = data.buckets[i];
 										let sname = content.name.split(".");
-										content.owner = sname[0];
-										content.displayName = sname[1];
-										content.personal = content.owner == window.common.auth.username ? true : false;
-										result.push(new Bucket(content));
-									});
-									return window.common.util.setArrayFunctions(result, Bucket);
+										let owner = sname[0];
+										let bucketId = sname[1];
+										if (Common.Util.checkUUID(owner)) { groupCoros.push(Common.Rest.get(`${Common.uerpUrl}/common/data/group/bucket/${bucketId}`)); }
+										else { userCoros.push(Common.Rest.get(`${Common.uerpUrl}/common/data/user/bucket/${bucketId}`)); }
+									}
+									for (let i = 0; i < groupCoros.length; i++) { groupBuckets.push(new Bucket(await groupCoros[i])); }
+									for (let i = 0; i < userCoros.length; i++) { userBuckets.push(new Bucket(await userCoros[i])); }
+									return {
+										group: Common.Util.setArrayFunctions(groupBuckets),
+										user: Common.Util.setArrayFunctions(userBuckets)
+									};
 								});
 							};
-							window.module.data.getAccessKeys = async () => {
-								return fetch("/objstore/api/v1/service-accounts").then((res) => {
+							window.Module.Data.createUserBucket = async (name, quota) => {
+								if (!name) { throw "(module.data.createBucket) name parameter is required"; }
+								return new Bucket(await Common.Rest.post(`${Common.uerpUrl}/common/data/user/bucket`, {
+									name: name,
+									quota: quota ? parseInt(quota) : 0
+								}));
+							};
+							window.Module.Data.createGroupBucket = async (group, name, quota) => {
+								if (!name) { throw "(module.data.createBucket) name parameter is required"; }
+								return new Bucket(await Common.Rest.post(`${Common.uerpUrl}/common/data/group/bucket?$group=${group.id}`, {
+									name: name,
+									quota: quota ? parseInt(quota) : 0
+								}));
+							};
+							window.Module.Data.getAccessKeys = async () => {
+								return fetch("/minio/api/v1/service-accounts").then((res) => {
 									if (res.ok) { return res.json(); }
 									throw res;
 								}).then((data) => {
-									console.log(data);
 									let result = [];
 									data.forEach((content) => {
 										content.policy = content.policy || "";
@@ -48,16 +70,16 @@ window.module.data = window.module.data || {
 										content.status = content.accountStatus;
 										result.push(new AccessKey(content));
 									});
-									return window.common.util.setArrayFunctions(result, Bucket);
+									return Common.Util.setArrayFunctions(result);
 								});
 							};
-							window.module.data.createAccessKey = async (name, description, policy, expiry, status) => {
+							window.Module.Data.createAccessKey = async (name, description, policy, expiry, status) => {
 								if (!name) { throw "(module.data.createAccessKey) parameter is required"; }
 								description = description || "";
 								policy = policy || "";
 								expiry = expiry || null;
 								status = status || "on";
-								return fetch("/objstore/api/v1/service-account-credentials", {
+								return fetch("/minio/api/v1/service-account-credentials", {
 									method: "POST",
 									headers: { "Content-Type": "application/json" },
 									body: JSON.stringify({
@@ -66,13 +88,13 @@ window.module.data = window.module.data || {
 										policy: policy,
 										expiry: expiry,
 										status: status,
-										accessKey: window.common.util.getRandomString(20),
-										secretKey: window.common.util.getRandomString(40)
+										accessKey: Common.Util.getRandomString(20),
+										secretKey: Common.Util.getRandomString(40)
 									})
 								}).then((res) => {
 									if (res.ok) { return res.json(); }
 									throw res;
-								});
+								})
 							};
 						} else { throw res; }
 					});
@@ -83,7 +105,7 @@ window.module.data = window.module.data || {
 		function AccessKey(content) {
 			if (content) { Object.assign(this, content); }
 			this.update = async () => {
-				return fetch(`/objstore/api/v1/service-accounts/${common.util.utoa(this.accessKey)}`, {
+				return fetch(`/minio/api/v1/service-accounts/${Common.Util.utoa(this.accessKey)}`, {
 					method: "PUT",
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify({
@@ -95,18 +117,19 @@ window.module.data = window.module.data || {
 					})
 				}).then((res) => {
 					if (res.ok) {
-						return fetch(`/objstore/api/v1/service-accounts/${common.util.utoa(this.accessKey)}`).then((res) => {
+						return fetch(`/minio/api/v1/service-accounts/${Common.Util.utoa(this.accessKey)}`).then((res) => {
 							if (res.ok) { return res.json(); }
 							throw res;
 						}).then((content) => {
 							Object.assign(this, content)
+							return this
 						});
 					}
 					throw res;
 				});
 			};
 			this.delete = async () => {
-				return fetch(`/objstore/api/v1/buckets/${this.bucket.name}/objects?prefix=${common.util.utoa(this.name)}`, {
+				return fetch(`/minio/api/v1/service-accounts/${Common.Util.utoa(this.accessKey)}`, {
 					method: "DELETE"
 				}).then((res) => {
 					if (res.ok) { return true; }
@@ -118,7 +141,7 @@ window.module.data = window.module.data || {
 		function Bucket(content) {
 			if (content) { Object.assign(this, content); }
 			this.getNodes = async () => {
-				return fetch(`/objstore/api/v1/buckets/${this.name}/objects`).then((res) => {
+				return fetch(`/minio/api/v1/buckets/${this.externalId}/objects`).then((res) => {
 					if (res.ok) { return res.json(); }
 					throw res;
 				}).then((data) => {
@@ -133,8 +156,8 @@ window.module.data = window.module.data || {
 						});
 					}
 					return {
-						folders: window.common.util.setArrayFunctions(folders, Folder),
-						files: window.common.util.setArrayFunctions(files, File)
+						folders: Common.Util.setArrayFunctions(folders),
+						files: Common.Util.setArrayFunctions(files)
 					};
 				});
 			};
@@ -146,7 +169,7 @@ window.module.data = window.module.data || {
 						let file = files[i];
 						let form = new FormData();
 						form.append(file.size, file);
-						coros.push(fetch(`/objstore/api/v1/buckets/${this.bucket.name}/objects/upload?prefix=${common.util.utoa(file.name)}`, {
+						coros.push(fetch(`/minio/api/v1/buckets/${this.bucket.externalId}/objects/upload?prefix=${Common.Util.utoa(file.name)}`, {
 							method: "POST",
 							body: form
 						}));
@@ -165,7 +188,7 @@ window.module.data = window.module.data || {
 		function Folder(content) {
 			if (content) { Object.assign(this, content); }
 			this.getNodes = async () => {
-				return fetch(`/objstore/api/v1/buckets/${this.bucket.name}/objects?prefix=${common.util.utoa(this.name)}`).then((res) => {
+				return fetch(`/minio/api/v1/buckets/${this.bucket.externalId}/objects?prefix=${Common.Util.utoa(this.name)}`).then((res) => {
 					if (res.ok) { return res.json(); }
 					throw res;
 				}).then((data) => {
@@ -180,8 +203,8 @@ window.module.data = window.module.data || {
 						});
 					}
 					return {
-						folders: window.common.util.setArrayFunctions(folders, Folder),
-						files: window.common.util.setArrayFunctions(files, File)
+						folders: Common.Util.setArrayFunctions(folders),
+						files: Common.Util.setArrayFunctions(files)
 					};
 				});
 			};
@@ -202,7 +225,7 @@ window.module.data = window.module.data || {
 						let prefix = `${this.name}${file.name}`;
 						let form = new FormData();
 						form.append(file.size, file);
-						coros.push(fetch(`/objstore/api/v1/buckets/${this.bucket.name}/objects/upload?prefix=${common.util.utoa(prefix)}`, {
+						coros.push(fetch(`/minio/api/v1/buckets/${this.bucket.externalId}/objects/upload?prefix=${Common.Util.utoa(prefix)}`, {
 							method: "POST",
 							body: form
 						}));
@@ -216,7 +239,7 @@ window.module.data = window.module.data || {
 				return results;
 			};
 			this.delete = async () => {
-				return fetch(`/objstore/api/v1/buckets/${this.bucket.name}/objects?prefix=${common.util.utoa(this.name)}&recursive=true`, {
+				return fetch(`/minio/api/v1/buckets/${this.bucket.externalId}/objects?prefix=${Common.Util.utoa(this.name)}&recursive=true`, {
 					method: "DELETE"
 				}).then((res) => {
 					if (res.ok) { return true; }
@@ -229,25 +252,31 @@ window.module.data = window.module.data || {
 		function File(content) {
 			if (content) { Object.assign(this, content); }
 			this.getParent = async () => { return this.parent; };
-			this.read = async () => {
-				return fetch(`/objstore/api/v1/buckets/${this.bucket.name}/objects/download?prefix=${common.util.utoa(this.name)}`).then((res) => {
+			this.load = async () => {
+				let data = await DB.Blob.index.read(this.etag)
+				if (data) { return data.blob; }
+				blob = await fetch(`/minio/api/v1/buckets/${this.bucket.externalId}/objects/download?prefix=${Common.Util.utoa(this.name)}`).then((res) => {
 					if (res.ok) { return res.blob(); }
 					throw res;
 				});
+				await DB.Blob.index.write(this.etag, {blob:blob});
+				return blob;
 			};
 			this.download = async () => {
-				let blob = await this.read();
+				let blob = await this.load();
 				let dom = document.createElement("a");
-				let url = URL.createObjectURL(blob);
 				let fileName = this.name.split("/");
+				let url = URL.createObjectURL(blob);
 				dom.href = url;
 				dom.download = fileName[fileName.length - 1];
 				dom.click();
 				dom.remove();
 				URL.revokeObjectURL(url);
+				return blob;
 			};
 			this.delete = async () => {
-				return fetch(`/objstore/api/v1/buckets/${this.bucket.name}/objects?prefix=${common.util.utoa(this.name)}`, {
+				await DB.Blob.index.delete(this.etag);
+				return fetch(`/minio/api/v1/buckets/${this.bucket.externalId}/objects?prefix=${Common.Util.utoa(this.name)}`, {
 					method: "DELETE"
 				}).then((res) => {
 					if (res.ok) { return true; }
@@ -257,6 +286,7 @@ window.module.data = window.module.data || {
 			this.print = () => { console.log(this); };
 		};
 
-		console.log("(module.data) ready");
+		console.log("(Module.Data) ready");
+		return window.Module.Data;
 	}
 };

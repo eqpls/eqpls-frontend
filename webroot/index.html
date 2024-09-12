@@ -4,10 +4,13 @@
 <head>
 
 <meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="description" content="">
 <meta name="author" content="eqpls.com">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="/static/img/favicons/ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff">
 
 <title>EQPLS</title>
 
@@ -27,10 +30,6 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/static/img/favicons/favicon-16x16.png">
 <link rel="manifest" href="/static/img/favicons/manifest.json">
 
-<meta name="msapplication-TileColor" content="#ffffff">
-<meta name="msapplication-TileImage" content="/static/img/favicons/ms-icon-144x144.png">
-<meta name="theme-color" content="#ffffff">
-
 <link href="/static/css/eqpls.css" rel="stylesheet" type="text/css">
 
 </head>
@@ -40,8 +39,8 @@
 	<div>
 		<div>
 			<h1>Hello World !!!</h1>
-			<input type="button" onclick="window.common.logout();" value="LogOut" />
-			<input type="button" onclick="window.module.term.openSSH('root', 'vmkloud.com', 8922);" value="Connect"/>
+			<input type="button" onclick="Common.logout();" value="LogOut" />
+			<input type="button" onclick="Module.Term.openSSH('root', 'vmkloud.com', 8922);" value="Connect"/>
 		</div>
 		<div>
 			<p id="eqpls-access-token"></p>

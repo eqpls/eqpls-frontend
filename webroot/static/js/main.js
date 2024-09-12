@@ -1,15 +1,25 @@
 // javascript here
 
-common.init(async () => { // main task
-	document.getElementById("eqpls-access-token").innerText = common.auth.accessToken;
-	
-	common.wsock.connect(
+Common.init(async () => { // main task
+	document.getElementById("eqpls-access-token").innerText = Common.Auth.accessToken;
+
+	console.log(await DB.Test.t1.write("jhc", {id:"jhc",val:"janghyechurn"}));
+	console.log(await DB.Test.t1.readAll());
+	console.log(await DB.Test.t1.read("jhc"));
+	console.log(await DB.Test.t1.write("jhc", {id:"jhc",val:"JHC"}));
+	console.log(await DB.Test.t1.readAll());
+	console.log(await DB.Test.t1.read("jhc"));
+	console.log(await DB.Test.t1.delete("jhc"));
+	console.log(await DB.Test.t1.readAll());
+	console.log(await DB.Test.t1.read("jhc"));
+
+	Common.WSock.connect(
 		"/router/websocket", // wsock url
 		async (socket, data) => { // receiver
 			console.log(socket, data);
 		},
 		async (socket) => { // initiator
-			await socket.sendData("hello", "world");
+			await socket.sendJson(["hello", "world"]);
 		}
 	);
 }).login();
