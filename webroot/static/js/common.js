@@ -283,7 +283,7 @@ window.Common = window.Common || {
 				throw res
 			}).then((userInfo) => {
 				window.Common.Auth.username = userInfo.preferred_username;
-				window.Common.Auth.userInfo = userInfo;
+				window.Common.Auth.UserInfo = new UserInfo(userInfo);
 			});
 		};
 
@@ -292,6 +292,26 @@ window.Common = window.Common || {
 				if (refreshed) { window.Common.Auth.postLogin(); }
 				setTimeout(window.Common.Auth.startTokenDaemon, 60000);
 			});
+		};
+
+		function UserInfo (content) {
+			if (content) { Object.assign(this, content); }
+			this.getRoles = async () => {
+				let result = [];
+				let coros = [];
+				for (let i = 0; i < this.roles.length; i++) { coros.push(window.Common.Auth.readRole(this.roles[i])); }
+				for (let i = 0; i < coros.length; i++) { result.push(await coros[i]) }
+				return window.Common.Util.setArrayFunctions(result);
+			};
+			this.getGroups = async () => {
+				let result = [];
+				let coros = [];
+				for (let i = 0; i < this.groups.length; i++) { coros.push(window.Common.Auth.readGroup(this.groups[i])); }
+				for (let i = 0; i < coros.length; i++) { result.push(await coros[i]) }
+				return window.Common.Util.setArrayFunctions(result);
+			};
+			this.getRoles().then((roles) => { this.Roles = roles; });
+			this.getGroups().then((groups) => { this.Groups = groups; });
 		};
 
 		//// window.Common.Auth model interfaces //////////

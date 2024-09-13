@@ -6,6 +6,6 @@ window.Config = window.Config || {
 	version: 1,
 	uerp: "uerp",
 	databases: {
-		Test: ["t1", "t2", "t3"]
+		EP: ["Temp"]
 	}
 };

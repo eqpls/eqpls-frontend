@@ -20,29 +20,18 @@ window.Module.Data = window.Module.Data || {
 					}).then((res) => {
 						if (res.ok) {
 							window.Module.Data.getBuckets = async () => {
-								return fetch("/minio/api/v1/buckets").then((res) => {
-									if (res.ok) { return res.json(); }
-									throw res;
-								}).then(async (data) => {
-									let groupBuckets = [];
-									let userBuckets = [];
-									let groupCoros = [];
-									let userCoros = [];
-									for (let i = 0; i < data.buckets.length; i++) {
-										let content = data.buckets[i];
-										let sname = content.name.split(".");
-										let owner = sname[0];
-										let bucketId = sname[1];
-										if (Common.Util.checkUUID(owner)) { groupCoros.push(Common.Rest.get(`${Common.uerpUrl}/common/data/group/bucket/${bucketId}`)); }
-										else { userCoros.push(Common.Rest.get(`${Common.uerpUrl}/common/data/user/bucket/${bucketId}`)); }
-									}
-									for (let i = 0; i < groupCoros.length; i++) { groupBuckets.push(new Bucket(await groupCoros[i])); }
-									for (let i = 0; i < userCoros.length; i++) { userBuckets.push(new Bucket(await userCoros[i])); }
-									return {
-										group: Common.Util.setArrayFunctions(groupBuckets),
-										user: Common.Util.setArrayFunctions(userBuckets)
-									};
-								});
+								let groupBuckets = [];
+								let userBuckets = [];
+								let groups = Common.Rest.get(`${Common.uerpUrl}/common/data/group/bucket`);
+								let users = Common.Rest.get(`${Common.uerpUrl}/common/data/user/bucket`);
+								groups = await groups;
+								users = await users;
+								for (let i = 0; i < groups.length; i++) { groupBuckets.push(new Bucket(await groups[i])) }
+								for (let i = 0; i < users.length; i++) { userBuckets.push(new Bucket(await users[i])) }
+								return {
+									group: Common.Util.setArrayFunctions(groupBuckets),
+									user: Common.Util.setArrayFunctions(userBuckets)
+								};
 							};
 							window.Module.Data.createUserBucket = async (name, quota) => {
 								if (!name) { throw "(module.data.createBucket) name parameter is required"; }
@@ -182,6 +171,13 @@ window.Module.Data = window.Module.Data || {
 				}
 				return results;
 			};
+			this.delete = async () => {
+				if (window.Common.Util.checkUUID(this.owner)) {
+					return await Common.Rest.delete(`${Common.uerpUrl}/common/data/group/bucket/${this.id}`);
+				} else {
+					return await Common.Rest.delete(`${Common.uerpUrl}/common/data/user/bucket/${this.id}`);
+				}
+			};
 			this.print = () => { console.log(this); };
 		};
 
@@ -259,7 +255,7 @@ window.Module.Data = window.Module.Data || {
 					if (res.ok) { return res.blob(); }
 					throw res;
 				});
-				await Common.DB.Blob.index.write(this.etag, {blob:blob});
+				await Common.DB.Blob.index.write(this.etag, { blob: blob });
 				return blob;
 			};
 			this.download = async () => {
